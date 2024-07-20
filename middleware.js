@@ -1,25 +1,14 @@
-import { NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+/*import { NextResponse } from "next/server";
 
-// Define the secret used to encrypt the token (should be the same as in your NextAuth config)
-const secret = process.env.NEXTAUTH_SECRET;
+export function middleware(request) {
+  console.log(request);
 
-// Middleware function to protect routes
-export async function middleware(req) {
-  // Get the token from cookies
-  const token = await getToken({ req, secret });
+  return NextResponse.redirect(new URL("/about", request.url));
+}*/
 
-  // Check if the user is authenticated
-  if (!token) {
-    // If not authenticated, redirect to the sign-in page
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
+import { auth } from "@/app/_lib/auth";
+export const middleware = auth;
 
-  // If authenticated, allow the request to proceed
-  return NextResponse.next();
-}
-
-// Configuration for the middleware
 export const config = {
-  matcher: ["/account/:path*"], // Apply middleware to `/account` and any sub-paths
+  matcher: ["/account"],
 };

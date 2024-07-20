@@ -1,50 +1,44 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { createGuest, getGuest } from "./data-service"; // Ensure these are Prisma-compatible
-import prisma from "./db"; // Import the Prisma client
+import { createGuest, getGuest } from "./data-service";
 
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+const authConfig = {
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
       clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
   ],
-  pages: {
-    signIn: "/login", // Specify the custom login page path
-  },
   callbacks: {
-    async signIn({ user }) {
+    authorized({ auth, request }) {
+      return !!auth?.user;
+    },
+    async signIn({ user, account, profile }) {
       try {
-        // Check if guest exists, create if not
         const existingGuest = await getGuest(user.email);
-        if (!existingGuest) {
+
+        if (!existingGuest)
           await createGuest({ email: user.email, fullName: user.name });
-        }
-        return true; // Continue with sign-in
-      } catch (error) {
-        console.error("Error in signIn callback:", error);
-        return false; // Prevent sign-in
+
+        return true;
+      } catch {
+        return false;
       }
     },
-    async session({ session }) {
-      try {
-        // Retrieve guest information
-        const guest = await getGuest(session.user.email);
-        if (guest) {
-          session.user.guestId = guest.id; // Adjust based on your Prisma schema
-        }
-        // console.log(session.user);
-        return session;
-      } catch (error) {
-        console.error("Error in session callback:", error);
-        return session; // Return session even if there's an error
-      }
+    async session({ session, user }) {
+      const guest = await getGuest(session.user.email);
+      session.user.guestId = guest.id;
+      return session;
     },
   },
-});
+  pages: {
+    signIn: "/login",
+  },
+};
+
+export const {
+  auth,
+  signIn,
+  signOut,
+  handlers: { GET, POST },
+} = NextAuth(authConfig);
