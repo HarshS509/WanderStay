@@ -1,16 +1,15 @@
 // prisma/schema.prisma
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
-generator client {
-  provider = "prisma-client-js"
-}
-
 model Booking {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  id           String   @id @default(uuid()) @db.Uuid
   startDate    DateTime
   endDate      DateTime
   numNights    Int?
@@ -22,8 +21,8 @@ model Booking {
   hasBreakfast Boolean  @default(false)
   isPaid       Boolean  @default(false)
   observations String?
-  cabinId      String   @map("cabinId") @db.ObjectId
-  guestId      String   @map("guestId") @db.ObjectId
+  cabinId      String   @db.Uuid
+  guestId      String   @db.Uuid
 
   cabin Cabin @relation(fields: [cabinId], references: [id])
   guest Guest @relation(fields: [guestId], references: [id])
@@ -33,7 +32,7 @@ model Booking {
 }
 
 model Cabin {
-  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  id           String    @id @default(uuid()) @db.Uuid
   created_at   DateTime  @default(now()) @map("created_at")
   name         String
   maxCapacity  Int
@@ -47,7 +46,7 @@ model Cabin {
 }
 
 model Guest {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  id          String    @id @default(uuid()) @db.Uuid
   created_at  DateTime  @default(now()) @map("created_at")
   fullName    String
   email       String    @unique
@@ -58,7 +57,7 @@ model Guest {
 }
 
 model Setting {
-  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                  String   @id @default(uuid()) @db.Uuid
   created_at          DateTime @default(now()) @map("created_at")
   minBookingLength    Int      @default(7)
   maxBookingLength    Int      @default(30)
