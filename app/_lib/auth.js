@@ -2,6 +2,8 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { createGuest, getGuest } from "./data-service";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import prisma from "./db";
+
 const authConfig = {
   adapter: PrismaAdapter(prisma),
   providers: [
