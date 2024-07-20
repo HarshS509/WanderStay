@@ -24,7 +24,7 @@ export const formatDistanceFromNow = (date) => {
 
 function ReservationCard({ booking, onDelete }) {
   const {
-    _id,
+    id,
     guestId,
     startDate,
     endDate,
@@ -34,14 +34,15 @@ function ReservationCard({ booking, onDelete }) {
     status,
     created_at,
     cabinId,
+    cabin,
   } = booking;
-  console.log(_id.toString());
+  // console.log(_id.toString());
   const startDateObj = safelyParseDate(startDate);
   const endDateObj = safelyParseDate(endDate);
   const createdAtObj = safelyParseDate(created_at);
 
-  const name = cabinId?.name || "Unknown Cabin";
-  const image = cabinId?.image || "/placeholder-image.jpg";
+  const name = cabin?.name || "Unknown Cabin";
+  const image = cabin?.image || "/placeholder-image.jpg";
 
   if (!startDateObj || !endDateObj) {
     return <div>Invalid reservation data</div>;
@@ -99,14 +100,14 @@ function ReservationCard({ booking, onDelete }) {
           {!isPast(startDate) ? (
             <>
               <Link
-                href={`/account/reservations/edit/${_id.toString()}`}
+                href={`/account/reservations/edit/${id.toString()}`}
                 className="group flex items-center gap-2 uppercase text-xs font-bold text-primary-300 border-b border-primary-800 flex-grow px-3 hover:bg-accent-600 transition-colors hover:text-primary-900"
               >
                 <PencilSquareIcon className="h-5 w-5 text-primary-600 group-hover:text-primary-800 transition-colors" />
                 <span className="mt-1">Edit</span>
               </Link>
               <DeleteReservation
-                bookingId={_id.toString()}
+                bookingId={id.toString()}
                 onDelete={onDelete}
               />
             </>

@@ -1,0 +1,69 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Booking {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  startDate    DateTime
+  endDate      DateTime
+  numNights    Int?
+  numGuests    Int?
+  cabinPrice   Float?
+  extrasPrice  Float?
+  totalPrice   Float?
+  status       String   @default("pending")
+  hasBreakfast Boolean  @default(false)
+  isPaid       Boolean  @default(false)
+  observations String?
+  cabinId      String   @map("cabinId") @db.ObjectId
+  guestId      String   @map("guestId") @db.ObjectId
+
+  cabin Cabin @relation(fields: [cabinId], references: [id])
+  guest Guest @relation(fields: [guestId], references: [id])
+
+  @@index([cabinId])
+  @@index([guestId])
+}
+
+model Cabin {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  created_at   DateTime  @default(now()) @map("created_at")
+  name         String
+  maxCapacity  Int
+  regularPrice Float
+  discount     Float     @default(0)
+  description  String
+  image        String
+  bookings     Booking[]
+
+  @@index([name])
+}
+
+model Guest {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  created_at  DateTime  @default(now()) @map("created_at")
+  fullName    String
+  email       String    @unique
+  nationality String?
+  nationalId  String?
+  countryFlag String?
+  bookings    Booking[]
+}
+
+model Setting {
+  id                  String   @id @default(auto()) @map("_id") @db.ObjectId
+  created_at          DateTime @default(now()) @map("created_at")
+  minBookingLength    Int      @default(7)
+  maxBookingLength    Int      @default(30)
+  maxGuestsPerBooking Int      @default(10)
+  breakfastPrice      Float    @default(10.0)
+
+  @@index([id])
+}

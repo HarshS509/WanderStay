@@ -1,15 +1,12 @@
-import Image from "next/image";
-import image1 from "@/public/about-1.jpg";
-import image2 from "@/public/about-2.jpg";
 import { getCabins } from "@/app/_lib/data-service";
-import { connectDB } from "../_lib/db";
+import image1 from "@/public/about-1.jpg";
+import Image from "next/image";
 
 export const metadata = {
   title: "About",
 };
 
 export default async function Page() {
-  await connectDB();
   const cabins = await getCabins();
   const numberOfCabins = cabins.length;
 

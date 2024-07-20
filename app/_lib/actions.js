@@ -1,10 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { auth, signIn, signOut } from "./auth";
-import { Booking, connectDB, Guest } from "./db";
-import { getBookings } from "./data-service";
 import { redirect } from "next/navigation";
+import { auth, signIn, signOut } from "./auth";
+import { getBookings } from "./data-service";
+import prisma from "./db";
 
 export async function updateProfile(formData) {
   const session = await auth();
@@ -18,20 +18,20 @@ export async function updateProfile(formData) {
     throw new Error("Please provide a valid national ID");
 
   const updateData = { nationality, countryFlag, nationalId };
-  await connectDB();
-  const updatedGuest = await Guest.findByIdAndUpdate(
-    session.user.guestId,
-    updateData,
-    {
-      new: true, // Return the updated document
-      runValidators: true, // Run validators to ensure data validity
-    }
+  console.log(
+    "connecteeddddddddddddddddddddddddddddddddddd",
+    session.user,
+    updateData
   );
+  const updatedGuest = await prisma.guest.update({
+    where: { id: session.user.guestId }, // Unique identifier for the guest
+    data: updateData, // Fields to be updated
+  });
 
   if (!updatedGuest) {
     throw new Error("Guest not found / updated");
   }
-  console.log(updatedGuest);
+  // console.log(updatedGuest);
   revalidatePath("/account/profile");
 }
 export async function signInAction() {
@@ -47,13 +47,14 @@ export async function deleteReservation(bookingId) {
   if (!session) {
     throw new Error("You must be signed in to delete your reservation.");
   }
-  await connectDB();
   const guestBookings = await getBookings(session.user.guestId);
   const guestBookingIds = guestBookings.map((booking) => booking.id);
 
   if (!guestBookingIds.includes(bookingId))
     throw new Error("You are not allowed to delete this booking");
-  const deletedBooking = await Booking.findByIdAndDelete(bookingId);
+  const deletedBooking = await prisma.booking.delete({
+    where: { id: bookingId }, // Unique identifier for the booking
+  });
 
   if (!deletedBooking) {
     throw new Error("Booking not found");
@@ -65,27 +66,20 @@ export async function updateBooking(formData) {
   const bookingId = formData.get("bookingId");
   const session = await auth();
   if (!session) throw new Error("You must be logged in");
-  await connectDB();
   const guestBookings = await getBookings(session.user.guestId);
-  console.log(guestBookings);
-  const guestBookingIds = guestBookings.map((booking) =>
-    booking._id.toString()
-  );
-  console.log(guestBookingIds, bookingId.toString());
+  // console.log(guestBookings);
+  const guestBookingIds = guestBookings.map((booking) => booking.id.toString());
+  // console.log(guestBookingIds, bookingId.toString());
   if (!guestBookingIds.includes(bookingId))
     throw new Error("You are not allowed to update this booking");
   const updateData = {
     numGuests: Number(formData.get("numGuests")),
     observations: formData.get("observations").slice(0, 1000),
   };
-  const updatedBooking = await Booking.findByIdAndUpdate(
-    bookingId,
-    updateData,
-    {
-      new: true, // Return the updated document
-      runValidators: true, // Run validators to ensure data validity
-    }
-  );
+  const updatedBooking = await prisma.booking.update({
+    where: { id: bookingId }, // Unique identifier for the booking
+    data: updateData, // Fields to be updated
+  });
 
   if (!updatedBooking) {
     throw new Error("Booking not found / updated");
@@ -110,10 +104,11 @@ export async function createBooking(bookingData, formData) {
     status: "unconfirmed",
   };
 
-  await connectDB();
-  const booking = new Booking(newBooking);
-  const savedBooking = await booking.save();
-  if (!savedBooking) throw new Error("Booking could not be created");
+  const createdBooking = await prisma.booking.create({
+    data: newBooking, // Fields to be set in the new record
+  });
+
+  if (!createdBooking) throw new Error("Booking could not be created");
 
   revalidatePath(`/cabins/${bookingData.cabinId}`);
 

@@ -6,9 +6,10 @@ import ReservationForm from "./ReservationForm";
 
 async function Reservation({ cabin }) {
   const session = await auth();
+  console.log(cabin);
   const [settings, bookedDates] = await Promise.all([
     getSettings(),
-    getBookedDatesByCabinId(cabin._id),
+    getBookedDatesByCabinId(cabin.id),
   ]);
   const plainCabin = JSON.parse(JSON.stringify(cabin));
   const plainSettings = JSON.parse(JSON.stringify(settings));

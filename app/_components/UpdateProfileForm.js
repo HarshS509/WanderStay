@@ -6,7 +6,7 @@ import SubmitButton from "./SubmitButton";
 
 function UpdateProfileForm({ guest, children }) {
   const { fullName, email, nationality, nationalId, countryFlag } = guest;
-
+  // console.log(guest);
   return (
     <form
       action={updateProfile}

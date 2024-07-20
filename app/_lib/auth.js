@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { createGuest, getGuest } from "./data-service";
-import { connectDB } from "./db";
+import { createGuest, getGuest } from "./data-service"; // Ensure these are Prisma-compatible
+import prisma from "./db"; // Import the Prisma client
 
 export const {
   handlers: { GET, POST },
@@ -19,31 +19,31 @@ export const {
     signIn: "/login", // Specify the custom login page path
   },
   callbacks: {
-    authorized({ auth, request }) {
-      return !!auth?.user;
-    },
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       try {
-        await connectDB();
+        // Check if guest exists, create if not
         const existingGuest = await getGuest(user.email);
         if (!existingGuest) {
           await createGuest({ email: user.email, fullName: user.name });
         }
-        return true;
-      } catch {
-        return false;
+        return true; // Continue with sign-in
+      } catch (error) {
+        console.error("Error in signIn callback:", error);
+        return false; // Prevent sign-in
       }
     },
-    async session({ session, token, user }) {
+    async session({ session }) {
       try {
-        await connectDB();
+        // Retrieve guest information
         const guest = await getGuest(session.user.email);
-        session.user.guestId = guest._id;
+        if (guest) {
+          session.user.guestId = guest.id; // Adjust based on your Prisma schema
+        }
+        // console.log(session.user);
         return session;
       } catch (error) {
         console.error("Error in session callback:", error);
-        // Handle the error as needed
-        return session;
+        return session; // Return session even if there's an error
       }
     },
   },

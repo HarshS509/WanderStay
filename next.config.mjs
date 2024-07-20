@@ -11,7 +11,9 @@ const nextConfig = {
     ],
   },
 
-  // output: "export",
+  experimental: {
+    serverComponentsExternalPackages: ["mongoose"],
+  },
 };
 
 export default nextConfig;

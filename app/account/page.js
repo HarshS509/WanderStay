@@ -6,7 +6,7 @@ export const metadata = {
 
 export default async function Page() {
   const session = await auth();
-  console.log("your session is ", session);
+  // console.log("your session is ", session);
   const firstName = session.user.name.split(" ").at(0);
 
   return (

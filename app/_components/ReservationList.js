@@ -1,7 +1,7 @@
 // "use client";
 import ReservationCard from "./ReservationCard";
 function ReservationList({ bookings }) {
-  console.log(bookings);
+  // console.log(bookings);
   // const [optimisticBookings, optimisticDelete] = useOptimistic(
   //   bookings,
   //   () => {}
@@ -16,7 +16,7 @@ function ReservationList({ bookings }) {
         <ReservationCard
           // onDelete={handleDelete}
           booking={booking}
-          key={booking._id.toString()}
+          key={booking.id.toString()}
         />
       ))}
     </ul>
