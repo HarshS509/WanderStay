@@ -1,46 +1,71 @@
-const { eachDayOfInterval } = require("date-fns");
-const mongoose = require("mongoose");
-const { Cabin, Booking, Setting, Guest } = require("./db");
-async function getCabin(id) {
-  const cabin = await Cabin.findById(id);
-  if (!cabin) {
-    throw new Error("Cabin not found");
+import { eachDayOfInterval } from "date-fns";
+import mongoose from "mongoose";
+import { notFound } from "next/navigation";
+import { Cabin, Booking, Setting, Guest } from "./db";
+export async function getCabin(id) {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid ID format");
+    }
+
+    const cabin = await Cabin.findById(id);
+    if (!cabin) {
+      throw new Error("Cabin not found");
+    }
+
+    return cabin;
+  } catch (error) {
+    notFound();
+    if (error.message === "Invalid ID format") {
+      throw new Error("Provided ID is not valid. Please check the ID format.");
+    } else if (error.message === "Cabin not found") {
+      throw new Error("No cabin found with the given ID.");
+    } else {
+      throw new Error(
+        "An error occurred while retrieving the cabin. Please try again later."
+      );
+    }
   }
-  return cabin;
 }
 
-async function getCabinPrice(id) {
+export async function getCabinPrice(id) {
   const cabin = await Cabin.findById(id, "regularPrice discount");
   if (!cabin) {
     throw new Error("Cabin not found");
   }
   return cabin;
 }
-async function getCabins() {
+export async function getCabins() {
   const cabins = await Cabin.find({});
   return cabins;
 }
-async function getGuest(mail) {
-  const guest = await Guest.findOne({ email: mail });
-  if (!guest) {
-    throw new Error("Guest not found");
+export async function getGuest(mail) {
+  try {
+    const guest = await Guest.findOne({ email: mail });
+    if (!guest) {
+      // console.log(`Guest not found for email: ${mail}`);
+      return null;
+    }
+    return guest;
+  } catch (error) {
+    console.error("Error in getGuest:", error);
+    throw new Error("Failed to retrieve guest");
   }
-  return guest;
 }
-async function getBooking(id) {
+export async function getBooking(id) {
   const booking = await Booking.findById(id);
   if (!booking) {
     throw new Error("Booking not found");
   }
-  console.log(booking);
+  // console.log(booking);
   return booking;
 }
-async function getBookings(guestId) {
+export async function getBookings(guestId) {
   try {
     const bookings = await Booking.find({ guestId })
       .populate("cabinId", "name image")
       .sort("startDate");
-    console.log(bookings);
+    // console.log(bookings);
     return bookings;
   } catch (error) {
     console.error(error);
@@ -48,7 +73,7 @@ async function getBookings(guestId) {
   }
 }
 
-async function getBookedDatesByCabinId(cabinId) {
+export async function getBookedDatesByCabinId(cabinId) {
   try {
     let today = new Date();
     today.setUTCHours(0, 0, 0, 0);
@@ -78,7 +103,7 @@ async function getBookedDatesByCabinId(cabinId) {
     throw new Error("Bookings could not get loaded");
   }
 }
-async function getSettings() {
+export async function getSettings() {
   try {
     const settings = await Setting.findOne().exec();
 
@@ -91,7 +116,7 @@ async function getSettings() {
     throw new Error("Settings could not be loaded");
   }
 }
-async function getCountries() {
+export async function getCountries() {
   try {
     const res = await fetch(
       "https://restcountries.com/v2/all?fields=name,flag"
@@ -102,29 +127,29 @@ async function getCountries() {
     throw new Error("Could not fetch countries");
   }
 }
-async function createGuest(newGuest) {
+export async function createGuest(newGuest) {
   try {
     const guest = new Guest(newGuest);
     const savedGuest = await guest.save();
-    console.log(savedGuest);
+    // console.log("New guest created:", savedGuest);
     return savedGuest;
   } catch (error) {
-    console.error(error);
+    console.error("Error in createGuest:", error);
     throw new Error("Guest could not be created");
   }
 }
-async function createBooking(newBooking) {
+export async function createBooking(newBooking) {
   try {
     const booking = new Booking(newBooking);
     const savedBooking = await booking.save();
-    console.log(savedBooking);
+    // console.log(savedBooking);
     return savedBooking;
   } catch (error) {
     console.error(error);
     throw new Error("Booking could not be created");
   }
 }
-async function updateGuest(id, updatedFields) {
+export async function updateGuest(id, updatedFields) {
   try {
     const updatedGuest = await Guest.findByIdAndUpdate(id, updatedFields, {
       new: true, // Return the updated document
@@ -141,7 +166,7 @@ async function updateGuest(id, updatedFields) {
     throw new Error("Guest could not be updated");
   }
 }
-async function updateBooking(id, updatedFields) {
+export async function updateBooking(id, updatedFields) {
   try {
     const updatedBooking = await Booking.findByIdAndUpdate(id, updatedFields, {
       new: true, // Return the updated document
@@ -158,7 +183,7 @@ async function updateBooking(id, updatedFields) {
     throw new Error("Booking could not be updated");
   }
 }
-async function deleteBooking(id) {
+export async function deleteBooking(id) {
   try {
     const deletedBooking = await Booking.findByIdAndDelete(id);
 

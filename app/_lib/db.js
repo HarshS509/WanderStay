@@ -1,8 +1,14 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
-mongoose.connect(
-  "mongodb+srv://harshsojitra222:2PNCdrpIE2WjR31b@cluster0.qizer0g.mongodb.net/abc"
-);
+export const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    // console.log("Connected to MongoDB");
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    process.exit(1);
+  }
+};
 
 // Define the schema for Cabins
 const cabinSchema = new mongoose.Schema({
@@ -52,7 +58,7 @@ const guestSchema = new mongoose.Schema({
   },
   nationality: {
     type: String,
-    required: true,
+    // required: true,
   },
   nationalId: {
     type: String,
@@ -133,12 +139,15 @@ const bookingSchema = new mongoose.Schema({
   },
 });
 // Create the model from the schema
-const Cabin = mongoose.model("Cabin", cabinSchema);
 
-const Guest = mongoose.model("Guest", guestSchema);
+const Cabin = mongoose?.models?.Cabin || mongoose?.model("Cabin", cabinSchema);
 
-const Setting = mongoose.model("Setting", settingSchema);
+const Guest = mongoose?.models?.Guest || mongoose?.model("Guest", guestSchema);
 
-const Booking = mongoose.model("Booking", bookingSchema);
+const Setting =
+  mongoose?.models?.Setting || mongoose?.model("Setting", settingSchema);
 
-module.exports = { Cabin, Booking, Setting, Guest };
+const Booking =
+  mongoose?.models?.Booking || mongoose?.model("Booking", bookingSchema);
+
+export { Cabin, Booking, Setting, Guest };
