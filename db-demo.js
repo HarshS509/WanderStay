@@ -14,45 +14,63 @@ const connectDB = async () => {
 };
 
 // Guest Schema
-const guestSchema = new mongoose.Schema({
+const cabinSchema = new mongoose.Schema({
   created_at: {
     type: Date,
     default: Date.now,
   },
-  fullName: {
+  name: {
     type: String,
     required: true,
   },
-  email: {
+  maxCapacity: {
+    type: Number,
+    required: true,
+  },
+  regularPrice: {
+    type: Number,
+    required: true,
+  },
+  discount: {
+    type: Number,
+    default: 0,
+  },
+  description: {
     type: String,
     required: true,
-    unique: true,
   },
-  nationality: {
+  image: {
     type: String,
-  },
-  nationalId: {
-    type: String,
-  },
-  countryFlag: {
-    type: String,
+    required: true,
   },
 });
 
-const Guest = mongoose.models.Guest || mongoose.model("Guest", guestSchema);
+const Cabin = mongoose.models.Cabin || mongoose.model("Cabin", cabinSchema);
 
 // Get guest by email
-async function getGuest(mail) {
+async function getCabin(id) {
   try {
-    const guest = await Guest.findOne({ email: mail });
-    if (!guest) {
-      // console.log(`Guest not found for email: ${mail}`);
-      return null;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new Error("Invalid ID format");
     }
-    return guest;
+
+    const cabin = await Cabin.findById(id);
+    if (!cabin) {
+      throw new Error("Cabin not found");
+    }
+
+    return cabin;
   } catch (error) {
-    console.error("Error in getGuest:", error);
-    throw new Error("Failed to retrieve guest");
+    notFound();
+    if (error.message === "Invalid ID format") {
+      throw new Error("Provided ID is not valid. Please check the ID format.");
+    } else if (error.message === "Cabin not found") {
+      throw new Error("No cabin found with the given ID.");
+    } else {
+      throw new Error(
+        "An error occurred while retrieving the cabin. Please try again later."
+      );
+    }
   }
 }
 
@@ -70,19 +88,18 @@ async function createGuest(newGuest) {
 }
 
 // Sign in function
-async function signIn({ user }) {
+async function signIn(id) {
   try {
     await connectDB(); // Ensure DB connection before operations
-    let guest = await getGuest(user.email);
-    if (!guest) {
-      // console.log("Creating new guest:", user.email);
-      guest = await createGuest({ email: user.email, fullName: user.name });
+    let cabin1 = await getCabin(id);
+    if (!cabin1) {
+      console.log("no cabin there");
     } else {
-      // console.log("Existing guest found:", guest);
+      console.log("Existing cabin found:", cabin1);
     }
     return true;
   } catch (error) {
-    console.error("Failed to sign in:", error);
+    console.error("Failed to look", error);
     return false;
   }
 }
@@ -90,12 +107,7 @@ async function signIn({ user }) {
 // Test the signIn function
 (async () => {
   try {
-    const result = await signIn({
-      user: {
-        name: "John Doe",
-        email: "john.doe123@example.com",
-      },
-    });
+    const result = await signIn("669136be60ce665a39ebd2b0");
     // console.log("Sign in result:", result);
   } catch (error) {
     console.error("Test failed:", error);
