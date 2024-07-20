@@ -14,7 +14,6 @@
     "@heroicons/react": "^2.1.5",
     "@prisma/client": "^5.17.0",
     "date-fns": "^3.6.0",
-    "mongoose": "^8.5.1",
     "next": "14.2.5",
     "next-auth": "^5.0.0-beta.19",
     "react": "^18",
